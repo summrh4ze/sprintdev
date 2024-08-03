@@ -1,7 +1,8 @@
 package com.example.sprintdev.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.example.sprintdev.dao.UserDAO;
+import com.example.sprintdev.model.UserRole;
+import com.example.sprintdev.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,6 +13,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -19,25 +21,37 @@ import java.util.Map;
 @Configuration
 public class JWTSecurityConfig {
 
-    private static final Logger log = LoggerFactory.getLogger(JWTSecurityConfig.class);
+    private final UserService userService;
+
+    public JWTSecurityConfig(UserService userService) {
+        this.userService = userService;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        List<String> authorizedRoles = Arrays.stream(UserRole.values())
+                .filter(role -> role != UserRole.UNASSIGNED)
+                .map(role -> "ROLE_" + role)
+                .toList();
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/tickets/**")
-                .hasAuthority("ROLE_USER")
+                .hasAnyAuthority(authorizedRoles.toArray(String[]::new))
                 .anyRequest()
                 .authenticated())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwt -> {
+                    UserDAO self = this.userService.getSelf(jwt);
                     Map<String, List<String>> realmAccess = jwt.getClaim("realm_access");
                     List<String> roles = realmAccess.get("roles");
                     List<SimpleGrantedAuthority> grantedAuthorities = roles
                             .stream()
                             .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                             .toList();
-                    JwtAuthenticationToken newToken = new JwtAuthenticationToken(jwt, grantedAuthorities);
-                    return newToken;
+                    List<SimpleGrantedAuthority> grantedAuthoritiesWithCustomRole = new ArrayList<>(grantedAuthorities);
+                    self.getRoles().forEach(role -> {
+                        grantedAuthoritiesWithCustomRole.add(new SimpleGrantedAuthority("ROLE_" + role));
+                    });
+                    return new JwtAuthenticationToken(jwt, grantedAuthoritiesWithCustomRole);
                 })));
         return http.build();
     }

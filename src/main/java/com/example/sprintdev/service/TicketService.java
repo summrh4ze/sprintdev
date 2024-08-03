@@ -1,7 +1,6 @@
 package com.example.sprintdev.service;
 
 import com.example.sprintdev.dao.TicketDAO;
-import com.example.sprintdev.model.Ticket;
 import com.example.sprintdev.repository.TicketRepository;
 import org.springframework.stereotype.Component;
 

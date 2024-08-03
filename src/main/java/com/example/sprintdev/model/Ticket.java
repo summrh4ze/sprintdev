@@ -5,12 +5,15 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "tickets")
 public class Ticket {
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id
+    @SequenceGenerator(name = "tickets_seq", sequenceName = "tickets_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tickets_seq")
     private Long id;
     @Column(nullable = false)
     private String name;
-    @Column(nullable = false)
+    @Column(name = "creation_time", nullable = false)
     private LocalDateTime creationTime;
 
     public Ticket() {}
