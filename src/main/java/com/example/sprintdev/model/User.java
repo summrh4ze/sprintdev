@@ -11,18 +11,27 @@ public class User {
     @SequenceGenerator(name = "users_seq", sequenceName = "users_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq")
     private Long id;
+
     @ElementCollection(fetch = FetchType.EAGER, targetClass = UserRole.class)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private List<UserRole> roles;
+
     @Column(name = "first_name")
     private String firstName;
+
     @Column(name = "last_name")
     private String lastName;
+
     private String username;
+
     @Column(unique = true)
     private String email;
+
+    @ManyToOne()
+    @JoinColumn(name = "assigned_project_id", referencedColumnName = "id")
+    private Project assignedProject = null;
 
     public User() {}
 
@@ -88,5 +97,13 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public Project getAssignedProject() {
+        return assignedProject;
+    }
+
+    public void setAssignedProject(Project assignedProject) {
+        this.assignedProject = assignedProject;
     }
 }

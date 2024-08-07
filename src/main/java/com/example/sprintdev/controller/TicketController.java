@@ -1,11 +1,12 @@
 package com.example.sprintdev.controller;
 
-import com.example.sprintdev.dao.TicketDAO;
+import com.example.sprintdev.dto.ApprovalVoteRequest;
+import com.example.sprintdev.dto.TicketDTO;
+import com.example.sprintdev.model.TicketSize;
+import com.example.sprintdev.model.User;
 import com.example.sprintdev.service.TicketService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.example.sprintdev.service.UserService;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -13,18 +14,59 @@ import java.util.List;
 @RequestMapping("/tickets")
 public class TicketController {
     private final TicketService ticketService;
+    private final UserService userService;
 
-    public TicketController(TicketService ticketService) {
+    public TicketController(
+            TicketService ticketService,
+            UserService userService
+    ) {
         this.ticketService = ticketService;
+        this.userService = userService;
     }
 
     @GetMapping("")
-    public List<TicketDAO> getAllTickets() {
-        return this.ticketService.getAllTickets();
+    public List<TicketDTO> getAllTickets(@RequestParam Long projectId, @RequestParam Long sprintId) {
+        return this.ticketService.getAllTickets(projectId, sprintId);
     }
 
     @GetMapping("/{id}")
-    public TicketDAO getTicketById(@PathVariable Long id) {
+    public TicketDTO getTicketById(@PathVariable Long id) {
         return this.ticketService.getTicketById(id);
+    }
+
+    @PostMapping("")
+    public TicketDTO createTicket(@RequestBody TicketDTO ticket) {
+        User self = this.userService.getUserSelf();
+        return this.ticketService.createTicket(self, ticket);
+    }
+
+    @PutMapping("/{id}")
+    public TicketDTO updateTicket(@PathVariable Long id, @RequestBody TicketDTO ticketChanges) {
+        User self = this.userService.getUserSelf();
+        return this.ticketService.updateTicket(id, self, ticketChanges);
+    }
+
+    @PutMapping("/{id}/approve")
+    public TicketDTO approveTicket(@PathVariable Long id, @RequestBody String message) {
+        User self = this.userService.getUserSelf();
+        return this.ticketService.approveTicket(id, self, message);
+    }
+
+    @PutMapping("/{id}/approveFinal")
+    public TicketDTO finalApprove(@PathVariable Long id, @RequestBody ApprovalVoteRequest body) {
+        User self = this.userService.getUserSelf();
+        return this.ticketService.finalApprove(id, self, body.getMessage());
+    }
+
+    @PutMapping("/{id}/vote")
+    public TicketDTO voteSize(@PathVariable Long id, @RequestBody ApprovalVoteRequest body) {
+        User self = this.userService.getUserSelf();
+        return this.ticketService.sizeVote(id, self, TicketSize.valueOf(body.getSize()), body.getMessage());
+    }
+
+    @PutMapping("/{id}/voteFinal")
+    public TicketDTO voteFinal(@PathVariable Long id, @RequestBody ApprovalVoteRequest body) {
+        User self = this.userService.getUserSelf();
+        return this.ticketService.sizeVoteFinal(id, self, TicketSize.valueOf(body.getSize()), body.getMessage());
     }
 }

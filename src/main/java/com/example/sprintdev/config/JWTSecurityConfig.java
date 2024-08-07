@@ -1,7 +1,6 @@
 package com.example.sprintdev.config;
 
-import com.example.sprintdev.dao.UserDAO;
-import com.example.sprintdev.model.UserRole;
+import com.example.sprintdev.dto.UserDTO;
 import com.example.sprintdev.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,18 +28,18 @@ public class JWTSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        List<String> authorizedRoles = Arrays.stream(UserRole.values())
+       /* List<String> authorizedRoles = Arrays.stream(UserRole.values())
                 .filter(role -> role != UserRole.UNASSIGNED)
                 .map(role -> "ROLE_" + role)
-                .toList();
+                .toList();*/
         http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/tickets/**")
-                .hasAnyAuthority(authorizedRoles.toArray(String[]::new))
+                /*.requestMatchers("/tickets/**")
+                .hasAnyAuthority(authorizedRoles.toArray(String[]::new))*/
                 .anyRequest()
                 .authenticated())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwt -> {
-                    UserDAO self = this.userService.getSelf(jwt);
+                    UserDTO self = this.userService.getSelf(jwt);
                     Map<String, List<String>> realmAccess = jwt.getClaim("realm_access");
                     List<String> roles = realmAccess.get("roles");
                     List<SimpleGrantedAuthority> grantedAuthorities = roles
@@ -61,7 +60,7 @@ public class JWTSecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

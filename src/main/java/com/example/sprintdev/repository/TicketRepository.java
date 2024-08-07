@@ -2,7 +2,12 @@ package com.example.sprintdev.repository;
 
 import com.example.sprintdev.model.Ticket;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
-@Service
-public interface TicketRepository extends JpaRepository<Ticket, Long> {}
+import java.util.List;
+
+@Repository
+public interface TicketRepository extends JpaRepository<Ticket, Long> {
+    List<Ticket> findByProjectId(Long projectId);
+    List<Ticket> findByProjectIdAndSprintId(Long projectId, Long sprintId);
+}

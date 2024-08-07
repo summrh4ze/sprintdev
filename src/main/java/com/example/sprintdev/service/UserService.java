@@ -1,11 +1,12 @@
 package com.example.sprintdev.service;
 
-import com.example.sprintdev.dao.UserDAO;
+import com.example.sprintdev.dto.UserDTO;
 import com.example.sprintdev.model.User;
 import com.example.sprintdev.model.UserRole;
 import com.example.sprintdev.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -25,13 +26,13 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public UserDAO getSelf() {
+    public UserDTO getSelf() {
         JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
         Jwt jwt = (Jwt) authentication.getCredentials();
         return getSelf(jwt);
     }
 
-    public synchronized UserDAO getSelf(Jwt jwt) {
+    public synchronized UserDTO getSelf(Jwt jwt) {
         // inset self in DB if not already there
         User self = this.userRepository.findByEmail(jwt.getClaim("email"));
         if (self == null) {
@@ -51,6 +52,17 @@ public class UserService {
             );
             self = this.userRepository.save(self);
         }
-        return new UserDAO(self);
+        return new UserDTO(self);
+    }
+
+    public User getUserSelf() {
+        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        Jwt jwt = (Jwt) authentication.getCredentials();
+        return this.userRepository.findByEmail(jwt.getClaim("email"));
+    };
+
+    @Secured({"ROLE_ADMIN"})
+    public List<UserDTO> getAll() {
+        return this.userRepository.findAll().stream().map(UserDTO::new).toList();
     }
 }

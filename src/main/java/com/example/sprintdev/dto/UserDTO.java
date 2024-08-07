@@ -1,24 +1,30 @@
-package com.example.sprintdev.dao;
+package com.example.sprintdev.dto;
 
 import com.example.sprintdev.model.User;
 
 import java.util.List;
 
-public class UserDAO {
+public class UserDTO {
     private long id;
     private List<String> roles;
     private String firstName;
     private String lastName;
     private String username;
     private String email;
+    private Long assignedProjectId;
 
-    public UserDAO(User user) {
+    public UserDTO() {}
+
+    public UserDTO(User user) {
         this.id = user.getId();
         this.roles = user.getRoles().stream().map(Enum::toString).toList();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.username = user.getUsername();
         this.email = user.getEmail();
+        if (user.getAssignedProject() != null) {
+            this.assignedProjectId = user.getAssignedProject().getId();
+        }
     }
 
     public long getId() {
@@ -67,5 +73,13 @@ public class UserDAO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Long getAssignedProjectId() {
+        return assignedProjectId;
+    }
+
+    public void setAssignedProjectId(Long assignedProjectId) {
+        this.assignedProjectId = assignedProjectId;
     }
 }
