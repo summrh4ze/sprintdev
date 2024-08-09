@@ -32,6 +32,7 @@ public class TicketComment {
         this.ticket = ticket;
         this.author = author;
         this.content = content;
+        this.creationTime = LocalDateTime.now();
     }
 
     public Long getId() {

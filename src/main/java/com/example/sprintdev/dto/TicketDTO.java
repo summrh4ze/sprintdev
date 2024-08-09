@@ -26,9 +26,13 @@ public class TicketDTO {
     public TicketDTO(Ticket ticket) {
         this.id = ticket.getId();
         this.project = new ProjectDTO(ticket.getProject());
-        this.sprint = new SprintDTO(ticket.getSprint());
+        if (ticket.getSprint() != null) {
+            this.sprint = new SprintDTO(ticket.getSprint());
+        }
         this.author = new UserDTO(ticket.getAuthor());
-        this.assignee = new UserDTO(ticket.getAssignee());
+        if (ticket.getAssignee() != null) {
+            this.assignee = new UserDTO(ticket.getAssignee());
+        }
         this.title = ticket.getTitle();
         this.creationTime = ticket.getCreationTime();
         this.status = ticket.getStatus().toString();

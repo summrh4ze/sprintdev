@@ -2,6 +2,8 @@ package com.example.sprintdev.dto;
 
 import com.example.sprintdev.model.TicketEvent;
 
+import java.time.LocalDateTime;
+
 public class TicketEventDTO {
     private Long id;
     private Long ticketId;
@@ -9,6 +11,7 @@ public class TicketEventDTO {
     private String type;
     private String message;
     private String sizeVote;
+    private LocalDateTime creationTime;
 
     public TicketEventDTO() {}
 
@@ -18,7 +21,8 @@ public class TicketEventDTO {
         this.type = event.getType().toString();
         this.message = event.getMessage();
         this.author = new UserDTO(event.getAuthor());
-        this.sizeVote = event.getSizeVote().toString();
+        this.sizeVote = event.getSizeVote() != null? event.getSizeVote().toString() : null;
+        this.creationTime = event.getCreationTime();
     }
 
     public Long getId() {
@@ -59,5 +63,21 @@ public class TicketEventDTO {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getSizeVote() {
+        return sizeVote;
+    }
+
+    public void setSizeVote(String sizeVote) {
+        this.sizeVote = sizeVote;
+    }
+
+    public LocalDateTime getCreationTime() {
+        return creationTime;
+    }
+
+    public void setCreationTime(LocalDateTime creationTime) {
+        this.creationTime = creationTime;
     }
 }

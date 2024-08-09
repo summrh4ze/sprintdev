@@ -2,11 +2,14 @@ package com.example.sprintdev.dto;
 
 import com.example.sprintdev.model.TicketComment;
 
+import java.time.LocalDateTime;
+
 public class TicketCommentDTO {
     private Long id;
     private Long ticket;
     private UserDTO author;
     private String content;
+    private LocalDateTime creationTime;
 
     public TicketCommentDTO() {}
     public TicketCommentDTO(TicketComment comment) {
@@ -14,6 +17,7 @@ public class TicketCommentDTO {
         this.ticket = comment.getTicket().getId();
         this.author = new UserDTO(comment.getAuthor());
         this.content = comment.getContent();
+        this.creationTime = comment.getCreationTime();
     }
 
     public Long getId() {
@@ -46,5 +50,13 @@ public class TicketCommentDTO {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public LocalDateTime getCreationTime() {
+        return creationTime;
+    }
+
+    public void setCreationTime(LocalDateTime creationTime) {
+        this.creationTime = creationTime;
     }
 }

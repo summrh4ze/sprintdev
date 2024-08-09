@@ -6,6 +6,7 @@ import com.example.sprintdev.model.TicketSize;
 import com.example.sprintdev.model.User;
 import com.example.sprintdev.service.TicketService;
 import com.example.sprintdev.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public class TicketController {
     }
 
     @GetMapping("")
-    public List<TicketDTO> getAllTickets(@RequestParam Long projectId, @RequestParam Long sprintId) {
+    public List<TicketDTO> getAllTickets(@RequestParam(required = false) Long projectId, @RequestParam(required = false) Long sprintId) {
         return this.ticketService.getAllTickets(projectId, sprintId);
     }
 
@@ -44,6 +45,12 @@ public class TicketController {
     public TicketDTO updateTicket(@PathVariable Long id, @RequestBody TicketDTO ticketChanges) {
         User self = this.userService.getUserSelf();
         return this.ticketService.updateTicket(id, self, ticketChanges);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void deleteTicket(@PathVariable Long id) {
+        this.ticketService.deleteTicket(id);
     }
 
     @PutMapping("/{id}/approve")

@@ -65,11 +65,13 @@ public class TicketService {
     @Secured({"ROLE_PO", "ROLE_DEV", "ROLE_DEV_LEAD"})
     @Transactional
     public TicketDTO updateTicket(Long ticketId, User user, TicketDTO ticketChanges) {
-        Ticket ticket = this.ticketRepository.findById(ticketChanges.getId()).orElseThrow();
-        ticketChanges.getComments().forEach(ticketComment -> {
-            TicketComment comment = new TicketComment(ticket, user, ticketComment.getContent());
-            ticket.addComment(comment);
-        });
+        Ticket ticket = this.ticketRepository.findById(ticketId).orElseThrow();
+        if (ticketChanges.getComments() != null) {
+            ticketChanges.getComments().forEach(ticketComment -> {
+                TicketComment comment = new TicketComment(ticket, user, ticketComment.getContent());
+                ticket.addComment(comment);
+            });
+        }
         if (ticketChanges.getSprint() != null && ticketChanges.getSprint().getId() != null) {
             Sprint sprint = this.sprintRepository.findById(ticketChanges.getSprint().getId()).orElseThrow();
             ticket.setSprint(user, sprint);
@@ -78,10 +80,18 @@ public class TicketService {
             User assignee = this.userRepository.findById(ticketChanges.getAssignee().getId()).orElseThrow();
             ticket.setAssignee(user, assignee);
         }
-        ticket.updateTitle(user, ticketChanges.getTitle());
-        ticket.updateContent(user, ticket.getContent());
-        ticket.setErrata(ticket.getErrata());
-        ticket.changeStatus(user, TicketStatus.valueOf(ticketChanges.getStatus()));
+        if (ticketChanges.getTitle() != null) {
+            ticket.updateTitle(user, ticketChanges.getTitle());
+        }
+        if (ticketChanges.getContent() != null) {
+            ticket.updateContent(user, ticketChanges.getContent());
+        }
+        if (ticketChanges.getErrata() != null) {
+            ticket.setErrata(ticketChanges.getErrata());
+        }
+        if (ticketChanges.getStatus() != null) {
+            ticket.changeStatus(user, TicketStatus.valueOf(ticketChanges.getStatus()));
+        }
         Ticket savedTicket = this.ticketRepository.save(ticket);
         return new TicketDTO(savedTicket);
     }
@@ -91,8 +101,15 @@ public class TicketService {
     public TicketDTO createTicket(User user, TicketDTO ticket) {
         Project project = this.projectRepository.findById(ticket.getProject().getId()).orElseThrow();
         Ticket newTicket = new Ticket(project, user, ticket.getTitle());
+        newTicket.updateContent(user, ticket.getContent());
         Ticket savedTicket = this.ticketRepository.save(newTicket);
         return new TicketDTO(savedTicket);
+    }
+
+    @Secured({"ROLE_PO", "ROLE_SM", "ROLE_DEV", "ROLE_DEV_LEAD", "ROLE_QA", "ROLE_QA_LEAD"})
+    @Transactional
+    public void deleteTicket(Long ticketId) {
+        this.ticketRepository.deleteById(ticketId);
     }
 
     @Secured({"ROLE_DEV", "ROLE_DEV_LEAD"})
