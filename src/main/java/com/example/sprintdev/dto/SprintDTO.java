@@ -13,11 +13,13 @@ public class SprintDTO {
     private LocalDate startDate;
     private LocalDate endDate;
     private List<Long> ticketIds = new ArrayList<>();
+    private ProjectDTO project;
 
     public SprintDTO() {}
 
     public SprintDTO(Sprint sprint) {
         this.id = sprint.getId();
+        this.project = new ProjectDTO(sprint.getProject());
         this.name = sprint.getName();
         this.description = sprint.getDescription();
         this.startDate = sprint.getStartDate();
@@ -70,5 +72,13 @@ public class SprintDTO {
 
     public void setTicketIds(List<Long> ticketIds) {
         this.ticketIds = ticketIds;
+    }
+
+    public ProjectDTO getProject() {
+        return project;
+    }
+
+    public void setProject(ProjectDTO project) {
+        this.project = project;
     }
 }

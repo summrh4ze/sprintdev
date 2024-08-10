@@ -35,9 +35,14 @@ public class ProjectController {
         return this.projectService.updateProject(id, project);
     }
 
-    @PostMapping("/sprints")
-    public SprintDTO createSprint(@RequestBody SprintDTO sprint) {
+    @PostMapping("/{id}/sprints")
+    public SprintDTO createSprint(@PathVariable Long id, @RequestBody SprintDTO sprint) {
         User self = this.userService.getUserSelf();
-        return this.projectService.createSprint(self, sprint);
+        return this.projectService.createSprint(id, self, sprint);
+    }
+
+    @GetMapping("/{id}/sprints")
+    public List<SprintDTO> getAllSprints(@PathVariable Long id) {
+        return this.projectService.getAllSprints(id);
     }
 }

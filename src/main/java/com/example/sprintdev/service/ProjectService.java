@@ -40,6 +40,12 @@ public class ProjectService {
         return this.projectRepository.findAll().stream().map(ProjectDTO::new).toList();
     }
 
+    @Secured({"ROLE_PO", "ROLE_SM", "ROLE_DEV", "ROLE_DEV_LEAD", "ROLE_QA", "ROLE_QA_LEAD"})
+    @Transactional
+    public List<SprintDTO> getAllSprints(Long projectId) {
+        return this.sprintRepository.findByProjectId(projectId).stream().map(SprintDTO::new).toList();
+    }
+
     @Secured({"ROLE_ADMIN"})
     @Transactional
     public ProjectDTO createProject(ProjectDTO project) {
@@ -65,9 +71,10 @@ public class ProjectService {
 
     @Secured({"ROLE_PO", "ROLE_SM"})
     @Transactional
-    public SprintDTO createSprint(User user, SprintDTO sprintData) {
+    public SprintDTO createSprint(Long projectId, User user, SprintDTO sprintData) {
         List<Ticket> tickets = this.ticketRepository.findAllById(sprintData.getTicketIds());
-        Sprint sprint = new Sprint(sprintData.getName(), sprintData.getDescription(), sprintData.getEndDate());
+        Project project = this.projectRepository.findById(projectId).orElseThrow();
+        Sprint sprint = new Sprint(project, sprintData.getName(), sprintData.getDescription(), sprintData.getEndDate());
         Sprint savedSprint = this.sprintRepository.save(sprint);
         tickets.forEach(ticket -> {
             ticket.setSprint(user, savedSprint);

@@ -54,9 +54,9 @@ public class TicketController {
     }
 
     @PutMapping("/{id}/approve")
-    public TicketDTO approveTicket(@PathVariable Long id, @RequestBody String message) {
+    public TicketDTO approveTicket(@PathVariable Long id, @RequestBody ApprovalVoteRequest body) {
         User self = this.userService.getUserSelf();
-        return this.ticketService.approveTicket(id, self, message);
+        return this.ticketService.approveTicket(id, self, body.getMessage());
     }
 
     @PutMapping("/{id}/approveFinal")

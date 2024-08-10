@@ -1,5 +1,6 @@
 package com.example.sprintdev.model;
 
+import com.example.sprintdev.model.exception.*;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -135,7 +136,7 @@ public class Ticket {
 
     public void approveContent(User user, String message) {
         if (this.status != TicketStatus.CREATED) {
-            throw new RuntimeException("ticket is not in status CREATED so it cannot be approved");
+            throw new ApproveContentException("ticket is not in status CREATED");
         }
 
         TicketEvent lastUpdate = getLastUpdate();
@@ -144,21 +145,23 @@ public class Ticket {
                 .stream()
                 .anyMatch(e -> e.getType() == TicketEventType.CONTENT_APPROVE &&
                         e.getCreationTime().isAfter(lastUpdate.getCreationTime()) &&
-                        !Objects.equals(e.getAuthor().getId(), user.getId())
+                        Objects.equals(e.getAuthor().getId(), user.getId())
                 );
         if (!userHasAlreadyApproved) {
             this.events.add(new TicketEvent(this, user, TicketEventType.CONTENT_APPROVE));
+        } else {
+            throw new ApproveContentException("Already approved");
         }
-        throw new RuntimeException("Already approved");
     }
 
     public void approveContentFinal(User user, List<User> allUsers, String message) {
-        if (checkIfApprovedByMajorityPlusOne(allUsers)) {
+        if (checkIfApprovedByMajority(allUsers)) {
             this.status = TicketStatus.ESTIMATION_READY;
             this.events.add(new TicketEvent(this, user, TicketEventType.CONTENT_APPROVE_FINAL, message));
             this.events.add(new TicketEvent(this, user, TicketEventType.STATUS_CHANGE, TicketStatus.ESTIMATION_READY.toString()));
+        } else {
+            throw new ApproveContentFinalException("Final approve failed because ticket is not approved by half + 1 devs");
         }
-        throw new RuntimeException("Final approve failed because ticket is not approved by majority + 1");
     }
 
     public void updateContent(User user, String updatedContent) {
@@ -171,36 +174,40 @@ public class Ticket {
 
     public void sizeVote(User user, TicketSize size, String message) {
         if (this.status != TicketStatus.ESTIMATION_READY) {
-            throw new RuntimeException("can't size the ticket if not in ESTIMATION_READY status");
+            throw new SizeVoteException("can't size the ticket if not in ESTIMATION_READY status");
         }
         boolean userHasAlreadyVoted = this.events
                 .stream()
                 .anyMatch(e -> e.getType() == TicketEventType.SIZE_VOTE &&
-                        !Objects.equals(e.getAuthor().getId(), user.getId())
+                        Objects.equals(e.getAuthor().getId(), user.getId())
                 );
         if (!userHasAlreadyVoted) {
             this.events.add(new TicketEvent(this, user, TicketEventType.SIZE_VOTE, size, message));
+        } else {
+            throw new SizeVoteException("Already approved");
         }
-        throw new RuntimeException("Already approved");
+
     }
 
     public void finalSizeVote(User user, List<User> allUsers,  TicketSize size, String message) {
-        if (checkIfSizeVotedByMajorityPlusOne(allUsers)) {
+        if (checkIfSizeVotedByMajority(allUsers)) {
             this.status = TicketStatus.SPRINT_READY;
             this.size = size;
             this.events.add(new TicketEvent(this, user, TicketEventType.SIZE_VOTE_FINAL, size, message));
             this.events.add(new TicketEvent(this, user, TicketEventType.STATUS_CHANGE, TicketStatus.SPRINT_READY.toString()));
+        } else {
+            throw new SizeVoteFinalException("Final vote failed because ticket is not approved by half + 1 devs");
         }
     }
 
     public void changeStatus(User user, TicketStatus status) {
         if (this.status != status) {
             if (this.status == TicketStatus.CREATED || this.status == TicketStatus.ESTIMATION_READY) {
-                throw new RuntimeException("CREATED and ESTIMATION_READY statuses can't be changed directly. Please use the approval/voting endpoints");
+                throw new StatusChangeException("CREATED and ESTIMATION_READY statuses can't be changed directly. Please use the approval/voting endpoints");
             } else if (this.status == TicketStatus.DONE) {
-                throw new RuntimeException("Status of ticket with status DONE can't be changed. Please create a new ticket");
+                throw new StatusChangeException("Status of ticket with status DONE can't be changed. Please create a new ticket");
             } else if (status == TicketStatus.CREATED || status == TicketStatus.ESTIMATION_READY) {
-                throw new RuntimeException("can't change back to CREATED or ESTIMATION_READY. Please create a new ticket if the content of this one is no longer valid");
+                throw new StatusChangeException("can't change back to CREATED or ESTIMATION_READY. Please create a new ticket if the content of this one is no longer valid");
             } else {
                 this.status = status;
                 this.events.add(new TicketEvent(this, user, TicketEventType.STATUS_CHANGE, status.toString()));
@@ -241,16 +248,16 @@ public class Ticket {
                 .orElseThrow(() -> new RuntimeException("Creation event missing for ticket " + this.title + " in project " + this.project.getName()));
     }
 
-    private boolean checkIfApprovedByMajorityPlusOne(List<User> allUsers) {
+    private boolean checkIfApprovedByMajority(List<User> allUsers) {
         TicketEvent lastUpdate = getLastUpdate();
         long numberOfApprovals = events.stream()
                 .filter(e -> e.getType() == TicketEventType.CONTENT_APPROVE && e.getCreationTime().isAfter(lastUpdate.getCreationTime()))
                 .count();
-        return numberOfApprovals >= allUsers.size() + 1;
+        return numberOfApprovals >= (allUsers.size() / 2) + 1;
     }
 
-    private boolean checkIfSizeVotedByMajorityPlusOne(List<User> allUsers) {
+    private boolean checkIfSizeVotedByMajority(List<User> allUsers) {
         long numberOfVotes = events.stream().filter(e -> e.getType() == TicketEventType.SIZE_VOTE).count();
-        return numberOfVotes >= allUsers.size() + 1;
+        return numberOfVotes >= (allUsers.size() / 2) + 1;
     }
 }

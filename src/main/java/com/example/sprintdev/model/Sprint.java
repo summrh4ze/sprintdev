@@ -24,14 +24,19 @@ public class Sprint {
     @Column(name = "end_date")
     private LocalDate endDate;
 
+    @ManyToOne
+    @JoinColumn(name = "project_id", referencedColumnName = "id")
+    private Project project;
+
     public Sprint() {}
 
-    public Sprint(String name, String description, LocalDate endDate) {
+    public Sprint(Project project, String name, String description, LocalDate endDate) {
         this();
         this.name = name;
         this.description = description;
         this.startDate = LocalDate.now();
         this.endDate = endDate;
+        this.project = project;
     }
 
     public Long getId() {
@@ -52,5 +57,9 @@ public class Sprint {
 
     public LocalDate getEndDate() {
         return endDate;
+    }
+
+    public Project getProject() {
+        return project;
     }
 }
