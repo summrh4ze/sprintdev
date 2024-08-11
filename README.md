@@ -18,3 +18,4 @@ There are 8 users registered in the keycloak server with the same password as th
 To modify any of keycloak settings or to add/remove users, connect to keycloak admin dashboard on ```localhost:28080``` with username admin and password admin
 
 4. Start the server. It will run on ```localhost:8080```
+5. Clone and run the frontend from [sprintdev-front](https://github.com/summrh4ze/sprintdev-front) repo
