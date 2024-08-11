@@ -46,6 +46,15 @@ public class ProjectService {
         return this.sprintRepository.findByProjectId(projectId).stream().map(SprintDTO::new).toList();
     }
 
+    @Secured({"ROLE_PO", "ROLE_SM", "ROLE_DEV", "ROLE_DEV_LEAD", "ROLE_QA", "ROLE_QA_LEAD"})
+    @Transactional
+    public SprintDTO getSprint(Long projectId, Long sprintId) {
+        List<Ticket> ticketsInSprint = this.ticketRepository.findByProjectIdAndSprintId(projectId, sprintId);
+        SprintDTO res = this.sprintRepository.findById(sprintId).map(SprintDTO::new).orElseThrow();
+        res.setTicketIds(ticketsInSprint.stream().map(Ticket::getId).toList());
+        return res;
+    }
+
     @Secured({"ROLE_ADMIN"})
     @Transactional
     public ProjectDTO createProject(ProjectDTO project) {

@@ -45,4 +45,9 @@ public class ProjectController {
     public List<SprintDTO> getAllSprints(@PathVariable Long id) {
         return this.projectService.getAllSprints(id);
     }
+
+    @GetMapping("/{id}/sprints/{sprintId}")
+    public SprintDTO getSprint(@PathVariable Long id, @PathVariable Long sprintId) {
+        return this.projectService.getSprint(id, sprintId);
+    }
 }
